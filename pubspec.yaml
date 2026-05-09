@@ -1,5 +1,5 @@
 name: ssh_key_manager
-description: A professional SSH key management tool for Windows desktop.
+description: keyman - A professional SSH key management tool for Windows desktop.
 version: 1.0.0
 
 environment:

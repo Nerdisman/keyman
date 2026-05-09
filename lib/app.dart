@@ -13,6 +13,9 @@ class SSHKeyManagerApp extends StatefulWidget {
 }
 
 class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
+  SharedPreferences? _prefs;
+  KeyManagerProvider? _keyManagerProvider;
+  ThemeProvider? _themeProvider;
   bool _isInitialized = false;
 
   @override
@@ -23,9 +26,10 @@ class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
 
   Future<void> _initApp() async {
     WidgetsFlutterBinding.ensureInitialized();
-    final prefs = await SharedPreferences.getInstance();
-    final keyManagerProvider = KeyManagerProvider(prefs);
-    await keyManagerProvider.loadKeys();
+    _prefs = await SharedPreferences.getInstance();
+    _keyManagerProvider = KeyManagerProvider(_prefs!);
+    await _keyManagerProvider!.loadKeys();
+    _themeProvider = ThemeProvider(_prefs!);
 
     setState(() {
       _isInitialized = true;
@@ -34,7 +38,7 @@ class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized) {
+    if (!_isInitialized || _prefs == null || _keyManagerProvider == null || _themeProvider == null) {
       return const MaterialApp(
         home: Scaffold(
           body: Center(child: CircularProgressIndicator()),
@@ -42,49 +46,32 @@ class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
       );
     }
 
-    return FutureBuilder<SharedPreferences>(
-      future: SharedPreferences.getInstance(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const MaterialApp(
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider.value(value: _themeProvider!),
+        ChangeNotifierProvider.value(value: _keyManagerProvider!),
+      ],
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'keyman',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              brightness: themeProvider.isDarkMode
+                  ? Brightness.dark
+                  : Brightness.light,
+              colorScheme: ColorScheme.fromSeed(
+                seedColor: const Color(0xFF1E88E5),
+                brightness: themeProvider.isDarkMode
+                    ? Brightness.dark
+                    : Brightness.light,
+              ),
             ),
+            home: const HomePage(),
           );
-        }
-
-        return MultiProvider(
-          providers: [
-            ChangeNotifierProvider(
-              create: (_) => ThemeProvider(snapshot.data!),
-            ),
-            ChangeNotifierProvider(
-              create: (_) => KeyManagerProvider(snapshot.data!),
-            ),
-          ],
-          child: Consumer<ThemeProvider>(
-            builder: (context, themeProvider, child) {
-              return MaterialApp(
-                title: 'SSH密钥管理器',
-                debugShowCheckedModeBanner: false,
-                theme: ThemeData(
-                  useMaterial3: true,
-                  brightness: themeProvider.isDarkMode
-                      ? Brightness.dark
-                      : Brightness.light,
-                  colorScheme: ColorScheme.fromSeed(
-                    seedColor: const Color(0xFF1E88E5),
-                    brightness: themeProvider.isDarkMode
-                        ? Brightness.dark
-                        : Brightness.light,
-                  ),
-                ),
-                home: const HomePage(),
-              );
-            },
-          ),
-        );
-      },
+        },
+      ),
     );
   }
 }

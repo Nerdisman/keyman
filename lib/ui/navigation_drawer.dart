@@ -30,7 +30,7 @@ class AppNavigationDrawer extends StatelessWidget {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  'SSH密钥管理器',
+                  'keyman',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,

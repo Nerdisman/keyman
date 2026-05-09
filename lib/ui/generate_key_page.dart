@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:ssh_key_manager/providers/key_manager_provider.dart';
 import 'package:ssh_key_manager/models/ssh_key.dart';
-import 'package:ssh_key_manager/utils/file_utils.dart';
 
 class GenerateKeyPage extends StatefulWidget {
   const GenerateKeyPage({super.key});
@@ -74,10 +74,18 @@ class _GenerateKeyPageState extends State<GenerateKeyPage> {
   }
 
   Future<void> _selectPath() async {
-    final defaultPath = await FileUtils.getDefaultSSHPath();
-    setState(() {
-      _customPath = defaultPath;
-    });
+    try {
+      final result = await FilePicker.platform.getDirectoryPath();
+      if (result != null) {
+        setState(() {
+          _customPath = result;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _errorMessage = '选择路径失败: ${e.toString()}';
+      });
+    }
   }
 
   @override

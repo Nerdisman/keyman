@@ -69,29 +69,32 @@ class _KeyListPageState extends State<KeyListPage> {
   void _confirmDelete(SSHKey key) {
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text('确认删除'),
         content: Text('确定要删除密钥 "${key.name}" 吗？这将同时删除私钥和公钥文件。'),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => Navigator.pop(dialogContext),
             child: const Text('取消'),
           ),
           TextButton(
-            onPressed: () async {
-              final keyManager =
-                  Provider.of<KeyManagerProvider>(context, listen: false);
-              await keyManager.deleteKey(key.id);
-              if (mounted) {
-                Navigator.pop(context);
-                _showSnackBar('密钥已删除');
-              }
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              _deleteKey(key);
             },
             child: const Text('删除'),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _deleteKey(SSHKey key) async {
+    final keyManager = Provider.of<KeyManagerProvider>(context, listen: false);
+    await keyManager.deleteKey(key.id);
+    if (mounted) {
+      _showSnackBar('密钥已删除');
+    }
   }
 
   List<SSHKey> _filterKeys(List<SSHKey> keys) {
