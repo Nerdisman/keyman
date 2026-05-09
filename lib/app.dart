@@ -14,8 +14,8 @@ class SSHKeyManagerApp extends StatefulWidget {
 
 class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
   SharedPreferences? _prefs;
-  KeyManagerProvider? _keyManagerProvider;
   ThemeProvider? _themeProvider;
+  KeyManagerProvider? _keyManagerProvider;
   bool _isInitialized = false;
 
   @override
@@ -27,9 +27,9 @@ class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
   Future<void> _initApp() async {
     WidgetsFlutterBinding.ensureInitialized();
     _prefs = await SharedPreferences.getInstance();
-    _keyManagerProvider = KeyManagerProvider(_prefs!);
-    await _keyManagerProvider!.loadKeys();
     _themeProvider = ThemeProvider(_prefs!);
+    _keyManagerProvider = await KeyManagerProvider.create();
+    await _keyManagerProvider!.loadKeys();
 
     setState(() {
       _isInitialized = true;
@@ -38,7 +38,7 @@ class _SSHKeyManagerAppState extends State<SSHKeyManagerApp> {
 
   @override
   Widget build(BuildContext context) {
-    if (!_isInitialized || _prefs == null || _keyManagerProvider == null || _themeProvider == null) {
+    if (!_isInitialized || _prefs == null || _themeProvider == null || _keyManagerProvider == null) {
       return const MaterialApp(
         home: Scaffold(
           body: Center(child: CircularProgressIndicator()),
